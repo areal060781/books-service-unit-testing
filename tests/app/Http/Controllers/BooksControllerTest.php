@@ -8,6 +8,8 @@ use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class BooksControllerTest extends TestCase
 {
+    use DatabaseMigrations;
+
     /**
      * @test
      */
@@ -22,11 +24,13 @@ class BooksControllerTest extends TestCase
      */
     public function index_should_return_a_collection_of_records()
     {
-        $this
-            ->get('/books')
-            ->seeStatusCode(200)
-            ->seeJson(['title' => 'War of the Worlds'])
-            ->seeJson(['title' => 'A Wrinkle in Time']);
+        $books = factory('App\Book', 2)->create();
+
+        $this->get('/books');
+
+        foreach ($books as $book) {
+            $this->seeJson(['title' => $book->title]);
+        }
     }
 
     /**
@@ -34,14 +38,16 @@ class BooksControllerTest extends TestCase
      */
     public function show_should_return_a_valid_book()
     {
+        $book = factory('App\Book')->create();
+
         $this
-            ->get('/books/1')
+            ->get("/books/{$book->id}")
             ->seeStatusCode(200)
             ->seeJson([
-                'id' => 1,
-                'title' => 'War of the Worlds',
-                'description' => 'A science fiction masterpiece about Martians invading London',
-                'author' => 'H. G. Wells'
+                'id' => $book->id,
+                'title' => $book->title,
+                'description' => $book->description,
+                'author' => $book->author
             ]);
 
         $data = json_decode($this->response->getContent(), true);
@@ -117,11 +123,13 @@ class BooksControllerTest extends TestCase
      */
     public function update_should_only_change_fillable_fields()
     {
-        $this->notSeeInDatabase('books', [
-            'title' => 'The War of the Worlds'
+        $book = factory('App\Book')->create([
+            'title' => 'War of the Worlds',
+            'description' => 'A science fiction masterpiece about Martians invading London',
+            'author' => 'H. G. Wells',
         ]);
 
-        $this->put('/books/1', [
+        $this->put("/books/{$book->id}", [
             'id' => 5,
             'title' => 'The War of the Worlds',
             'description' => 'The book is way better than the movie.',
@@ -131,6 +139,7 @@ class BooksControllerTest extends TestCase
         $this
             ->seeStatusCode(200)
             ->seeJson([
+                'id' => $book->id,
                 'title' => 'The War of the Worlds',
                 'description' => 'The book is way better than the movie.',
                 'author' => 'Wells, H. G.'
@@ -168,12 +177,14 @@ class BooksControllerTest extends TestCase
     /** @test * */
     public function destroy_should_remove_a_valid_book()
     {
+        $book = factory('App\Book')->create();
+
         $this
-            ->delete('/books/1')
+            ->delete("/books/{$book->id}")
             ->seeStatusCode(204)
             ->isEmpty();
 
-        $this->notSeeInDatabase('books', ['id' => 1]);
+        $this->notSeeInDatabase('books', ['id' => $book->id]);
     }
 
     /** @test * */
