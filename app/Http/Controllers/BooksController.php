@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Book;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 
 /**
  * Class BooksController
@@ -15,7 +16,7 @@ class BooksController extends Controller
      * GET /books
      * @return array
      */
-    public function index(): array
+    public function index()
     {
         return Book::all();
     }
@@ -31,5 +32,19 @@ class BooksController extends Controller
                 ]
             ], 404);
         }
+    }
+
+    /**
+     * POST /books
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function store(Request $request)
+    {
+        $book = Book::create($request->all());
+
+        return response()->json(['created' => true], 201, [
+            'location' => route('books.show', ['id' => $book->id])
+        ]);
     }
 }
