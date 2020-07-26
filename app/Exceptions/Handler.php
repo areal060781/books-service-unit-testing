@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -28,7 +29,7 @@ class Handler extends ExceptionHandler
      *
      * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
      *
-     * @param  \Throwable  $exception
+     * @param \Throwable $exception
      * @return void
      *
      * @throws \Exception
@@ -41,14 +42,47 @@ class Handler extends ExceptionHandler
     /**
      * Render an exception into an HTTP response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Throwable  $exception
+     * @param \Illuminate\Http\Request $request
+     * @param \Throwable $exception
      * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
-     *
      * @throws \Throwable
      */
     public function render($request, Throwable $exception)
     {
+        if ($request->wantsJson() && !($exception instanceof ValidationException)) {
+            $response = [
+                'message' => (string) $exception->getMessage(),
+                'status' => 400
+            ];
+
+            if ($exception instanceof HttpException) {
+                $response['message'] = Response::$statusTexts[$exception->getStatusCode()];
+                $response['status'] = $exception->getStatusCode();
+            } else if ($exception instanceof ModelNotFoundException) {
+                $response['message'] = Response::$statusTexts[Response::HTTP_NOT_FOUND];
+                $response['status'] = Response::HTTP_NOT_FOUND;
+            }
+
+            if ($this->isDebugMode()) {
+                $response['debug'] = [
+                    'exception' => get_class($exception),
+                    'trace' => $exception->getTrace()
+                ];
+            }
+
+            return response()->json(['error' => $response], $response['status']);
+        }
+
         return parent::render($request, $exception);
+    }
+
+    /**
+     * Determine if the application is in debug mode
+     *
+     * @return Boolean
+     */
+    public function isDebugMode()
+    {
+        return (boolean) env('APP_DEBUG');
     }
 }
