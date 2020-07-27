@@ -18,7 +18,8 @@ class BooksController extends Controller
      */
     public function index()
     {
-        return Book::all();
+        return ['data' => Book::all()->toArray()];
+        //return response()->json(Book::all());
     }
 
     /**
@@ -28,7 +29,8 @@ class BooksController extends Controller
      */
     public function show($id)
     {
-        return Book::findOrFail($id);
+        return ['data' => Book::findOrFail($id)->toArray()];
+        //return response()->json(Book::find($id));
     }
 
     /**
@@ -40,9 +42,23 @@ class BooksController extends Controller
     {
         $book = Book::create($request->all());
 
-        return response()->json(['created' => true], 201, [
-            'location' => route('books.show', ['id' => $book->id])
+        return response()->json(
+            ['data' => $book->toArray()],
+            201,
+            ['location' => route('books.show', ['id' => $book->id])]
+        );
+
+        /*
+        $this->validate($request, [
+            'name' => 'required',
+            'email' => 'required|email|unique:authors',
+            'location' => 'required|alpha'
         ]);
+
+        $book = Book::create($request->all());
+
+        return response()->json($book, 201);
+        */
     }
 
     /**
@@ -66,7 +82,13 @@ class BooksController extends Controller
         $book->fill($request->all());
         $book->save();
 
-        return $book;
+        return ['data' => $book->toArray()];
+        /*
+        $book = Book::findOrFail($id);
+        $book->update($request->all());
+
+        return response()->json($book, 200);
+        */
     }
 
     /**
@@ -88,5 +110,10 @@ class BooksController extends Controller
         $book->delete();
 
         return response(null, 204);
+
+        /*
+        Book::findOrFail($id)->delete();
+        return response('Deleted Successfully', 200);
+        */
     }
 }
