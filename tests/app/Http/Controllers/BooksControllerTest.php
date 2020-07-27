@@ -3,12 +3,25 @@
 namespace Tests\App\Http\Controllers;
 
 use TestCase;
+use Carbon\Carbon;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class BooksControllerTest extends TestCase
 {
     use DatabaseMigrations;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        Carbon::setTestNow(Carbon::now('UTC'));
+    }
+
+    public function tearDown(): void
+    {
+        parent::tearDown();
+        Carbon::setTestNow();
+    }
 
     /**
      * @test
@@ -28,11 +41,19 @@ class BooksControllerTest extends TestCase
 
         $this->get('/books');
 
-        $expected = [
-            'data' => $books->toArray()
-        ];
+        $content = json_decode($this->response->getContent(), true);
+        $this->assertArrayHasKey('data', $content);
 
-        $this->seeJsonEquals($expected);
+        foreach ($books as $book) {
+            $this->seeJson([
+                'id' => $book->id,
+                'title' => $book->title,
+                'description' => $book->description,
+                'author' => $book->author,
+                'created' => $book->created_at->toIso8601String(),
+                'updated' => $book->updated_at->toIso8601String()
+            ]);
+        }
     }
 
     /**
@@ -42,14 +63,22 @@ class BooksControllerTest extends TestCase
     {
         $book = factory('App\Book')->create();
 
-        $expected = [
-            'data' => $book->toArray()
-        ];
-
         $this
             ->get("/books/{$book->id}")
-            ->seeStatusCode(200)
-            ->seeJsonEquals($expected);
+            ->seeStatusCode(200);
+
+        // Get the response and assert the data key exists
+        $content = json_decode($this->response->getContent(), true);
+        $this->assertArrayHasKey('data', $content);
+        $data = $content['data'];
+
+        // Assert the Book Properties match
+        $this->assertEquals($book->id, $data['id']);
+        $this->assertEquals($book->title, $data['title']);
+        $this->assertEquals($book->description, $data['description']);
+        $this->assertEquals($book->author, $data['author']);
+        $this->assertEquals($book->created_at->toIso8601String(), $data['created']);
+        $this->assertEquals($book->updated_at->toIso8601String(), $data['created']);
     }
 
     /**
@@ -91,7 +120,7 @@ class BooksControllerTest extends TestCase
         $this
             ->post('/books', [
                 'title' => 'The Invisible Man',
-                'description' => 'An invisible man is trapped in the error of his own creation',
+                'description' => 'An invisible man is trapped in the terror of his own creation',
                 'author' => 'H. G. Wells'
             ]);
 
@@ -100,9 +129,16 @@ class BooksControllerTest extends TestCase
 
         $data = $body['data'];
         $this->assertEquals('The Invisible Man', $data['title']);
-        $this->assertEquals('An invisible man is trapped in the error of his own creation', $data['description']);
+        $this->assertEquals(
+            'An invisible man is trapped in the terror of his own creation',
+            $data['description']
+        );
         $this->assertEquals('H. G. Wells', $data['author']);
         $this->assertTrue($data['id'] > 0, 'Expected a positive integer, but did not see one.');
+        $this->assertArrayHasKey('created', $data);
+        $this->assertEquals(Carbon::now()->toIso8601String(), $data['created']);
+        $this->assertArrayHasKey('updated', $data);
+        $this->assertEquals(Carbon::now()->toIso8601String(), $data['updated']);
         $this->seeInDatabase('books', ['title' => 'The Invisible Man']);
     }
 
@@ -154,6 +190,12 @@ class BooksControllerTest extends TestCase
 
         $body = json_decode($this->response->getContent(), true);
         $this->assertArrayHasKey('data', $body);
+
+        $data = $body['data'];
+        $this->assertArrayHasKey('created', $data);
+        $this->assertEquals(Carbon::now()->toIso8601String(), $data['created']);
+        $this->assertArrayHasKey('updated', $data);
+        $this->assertEquals(Carbon::now()->toIso8601String(), $data['updated']);
     }
 
     /**

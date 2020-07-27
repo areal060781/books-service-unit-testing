@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Book;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-
+use App\Transformer\BookTransformer;
 /**
  * Class BooksController
  * @package App\Http\Controllers
@@ -18,7 +18,8 @@ class BooksController extends Controller
      */
     public function index()
     {
-        return ['data' => Book::all()->toArray()];
+        return $this->collection(Book::all(), new BookTransformer());
+        //return ['data' => Book::all()->toArray()];
         //return response()->json(Book::all());
     }
 
@@ -29,7 +30,8 @@ class BooksController extends Controller
      */
     public function show($id)
     {
-        return ['data' => Book::findOrFail($id)->toArray()];
+        return $this->item(Book::findOrFail($id), new BookTransformer());
+        //return ['data' => Book::findOrFail($id)->toArray()];
         //return response()->json(Book::find($id));
     }
 
@@ -41,9 +43,10 @@ class BooksController extends Controller
     public function store(Request $request)
     {
         $book = Book::create($request->all());
+        $data = $this->item($book, new BookTransformer());
 
         return response()->json(
-            ['data' => $book->toArray()],
+            $data,
             201,
             ['location' => route('books.show', ['id' => $book->id])]
         );
@@ -82,7 +85,8 @@ class BooksController extends Controller
         $book->fill($request->all());
         $book->save();
 
-        return ['data' => $book->toArray()];
+        return $this->item($book, new BookTransformer());
+        //return ['data' => $book->toArray()];
         /*
         $book = Book::findOrFail($id);
         $book->update($request->all());
