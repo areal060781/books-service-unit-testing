@@ -4,6 +4,7 @@
 
 use App\User;
 use App\Book;
+use App\Author;
 use Faker\Generator as Faker;
 
 /*
@@ -29,6 +30,13 @@ $factory->define(Book::class, function (Faker $faker) {
     return [
         'title' => substr($title, 0, strlen($title) - 1),
         'description' => $faker->text,
-        'author' => $faker->name
+    ];
+});
+
+$factory->define(Author::class, function (Faker $faker) {
+    return [
+        'name' => $faker->name,
+        'biography' => join(" ", $faker->sentences(rand(3, 5))),
+        'gender' => rand(1, 6) % 2 === 0 ? 'male' : 'female'
     ];
 });

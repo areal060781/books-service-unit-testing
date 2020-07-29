@@ -12,19 +12,13 @@ class BooksTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('books')->insert([
-            'title' => 'War of Worlds',
-            'description' => 'A sciencie function masterpiece about Martians invading London',
-            'author' => 'H. G. Wells',
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
-        ]);
-        DB::table('books')->insert([
-            'title' => 'A Wrinkle in Time',
-            'description' => 'A young girls goes on a mission to save her father who has gone missing after working on a mysterious project called a tesseract.',
-            'author' => "Madeleine L'Engle",
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
-        ]);
+        factory(\App\Author::class, 10)->create()->each(function($author){
+            $booksCount = rand(1,5);
+
+            while ($booksCount>0){
+                $author->books()->save(factory(\App\Book::class)->create());
+                $booksCount--;
+            }
+        });
     }
 }

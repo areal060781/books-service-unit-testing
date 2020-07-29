@@ -6,6 +6,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 abstract class TestCase extends BaseTestCase
 {
     use MockeryPHPUnitIntegration;
+
     /**
      * Creates the application.
      *
@@ -49,5 +50,25 @@ abstract class TestCase extends BaseTestCase
             );
 
         return $this;
+    }
+
+    protected function bookFactory($count = 1)
+    {
+        $author = factory(\App\Author::class)->create();
+
+        if ($count === 1) {
+            $books = factory(\App\Book::class)->make();
+            $books->author()->associate($author);
+            $books->save();
+        } else {
+            $books = factory(\App\Book::class, $count)->make();
+            $books->each(function ($book) use ($author) {
+                $book->author()->associate($author);
+                $book->save();
+            });
+        }
+
+
+        return $books;
     }
 }
