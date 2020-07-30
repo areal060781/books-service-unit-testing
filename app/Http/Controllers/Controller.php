@@ -8,14 +8,13 @@ use League\Fractal\TransformerAbstract;
 
 class Controller extends BaseController
 {
-    /**
-     * @var FractalResponse
-     */
+    /** @var FractalResponse */
     private $fractal;
 
     public function __construct(FractalResponse $fractal)
     {
         $this->fractal = $fractal;
+        $this->fractal->parseIncludes();
     }
 
     /**

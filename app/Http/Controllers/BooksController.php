@@ -6,6 +6,7 @@ use App\Book;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Transformer\BookTransformer;
+
 /**
  * Class BooksController
  * @package App\Http\Controllers
