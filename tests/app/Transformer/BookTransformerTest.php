@@ -12,6 +12,9 @@ class BookTransformerTest extends TestCase
 {
     use DatabaseMigrations;
 
+    /** @var BookTransformer */
+    private $subject;
+
     /** @test * */
     public function it_can_be_initialized()
     {

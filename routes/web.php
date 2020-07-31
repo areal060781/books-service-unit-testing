@@ -28,11 +28,18 @@ $router->delete('/books/{id}', 'BooksController@destroy');
 
 $router->group([
     'prefix' => 'authors',
-    //'namespace' => 'App\Http\Controllers'
 ], function () use ($router) {
     $router->get('/', 'AuthorsController@index');
     $router->post('/', 'AuthorsController@store');
     $router->get('/{id:[\d]+}', ['as' => 'authors.show', 'uses' => 'AuthorsController@show']);
     $router->put('/{id:[\d]+}', 'AuthorsController@update');
     $router->delete('/{id:[\d]+}', 'AuthorsController@destroy');
+});
+
+$router->group([
+    'prefix' => 'bundles',
+], function () use ($router) {
+    $router->get('/{id:[\d]+}', ['as' => 'bundles.show', 'uses' => 'BundlesController@show']);
+    $router->put('/{bundleId:[\d]+}/books/{bookId:[\d]+}', 'BundlesController@addBook');
+    $router->delete('/{bundleId:[\d]+}/books/{bookId:[\d]+}', 'BundlesController@removeBook');
 });
