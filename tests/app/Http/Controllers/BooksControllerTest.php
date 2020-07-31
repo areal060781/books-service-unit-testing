@@ -81,19 +81,17 @@ class BooksControllerTest extends TestCase
         $this->assertEquals($book->updated_at->toIso8601String(), $data['created']);
     }
 
-    /**
-     * @test
-     */
-    public function show_should_fail_when_the_book_id_does_not_exists()
+
+
+    /** @test **/
+    public function show_should_fail_when_the_book_id_does_not_exist()
     {
         $this
             ->get('/books/99999', ['Accept' => 'application/json'])
             ->seeStatusCode(404)
             ->seeJson([
-                'error' => [
-                    'message' => 'Not Found',
-                    'status' => 404
-                ]
+                'message' => 'Not Found',
+                'status' => 404
             ]);
     }
 
@@ -102,7 +100,7 @@ class BooksControllerTest extends TestCase
      */
     public function show_route_should_not_match_an_invalid_route()
     {
-        $this->get('/book/this-is-invalid');
+        $this->get('/books/this-is-invalid');
 
         $this->assertNotRegExp(
             '/Book not found/',
@@ -158,7 +156,7 @@ class BooksControllerTest extends TestCase
 
         $this->post('/books', [
             'title' => 'The Invisible Man',
-            'description' => 'And invisible man is trapped in the error of his own creation',
+            'description' => 'An invisible man is trapped in the terror of his own creation',
             'author_id' => $author->id
         ], ['Accept' => 'application/json']);
 
@@ -176,7 +174,7 @@ class BooksControllerTest extends TestCase
 
         $this->notSeeInDatabase('books', [
             'title' => 'The War of the Worlds',
-            'description' => 'The book is way better than the movie.'
+            'description' => 'The book is way better than the movie.',
         ]);
 
         $this->put("/books/{$book->id}", [
@@ -214,7 +212,7 @@ class BooksControllerTest extends TestCase
     public function update_should_fail_with_an_invalid_id()
     {
         $this
-            ->put('/books/999999999')
+            ->put('/books/999999999999999')
             ->seeStatusCode(404)
             ->seeJsonEquals([
                 'error' => [
@@ -223,10 +221,8 @@ class BooksControllerTest extends TestCase
             ]);
     }
 
-    /**
-     * @test
-     */
-    public function update_should_not_match_and_invalid_route()
+    /** @test **/
+    public function update_should_not_match_an_invalid_route()
     {
         $this
             ->put('/books/this-is-invalid')
@@ -250,7 +246,7 @@ class BooksControllerTest extends TestCase
     public function destroy_should_return_a_404_with_an_invalid_id()
     {
         $this
-            ->delete('/books/999999999')
+            ->delete('/books/99999')
             ->seeStatusCode(404)
             ->seeJsonEquals([
                 'error' => [

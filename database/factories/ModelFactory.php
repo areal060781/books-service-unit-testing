@@ -39,10 +39,16 @@ $factory->define(\App\Author::class, function (Faker $faker) {
 });
 
 $factory->define(\App\Bundle::class, function ($faker) {
-    $title = $faker->sentence(rand(3,10));
+    $title = $faker->sentence(rand(3, 10));
 
     return [
         'title' => substr($title, 0, strlen($title) - 1),
         'description' => $faker->text
+    ];
+});
+
+$factory->define(\App\Rating::class, function (Faker $faker) {
+    return [
+        'value' => rand(1, 5)
     ];
 });
